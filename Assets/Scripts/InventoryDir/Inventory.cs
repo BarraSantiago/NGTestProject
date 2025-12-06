@@ -19,11 +19,11 @@ namespace InventoryDir
         {
             slots ??= new List<ItemStack>();
             while (slots.Count < size) slots.Add(new ItemStack());
+            PersistenceSystem.PersistenceManager.LoadInventory(this);
         }
 
         private void Start()
         {
-            PersistenceSystem.PersistenceManager.LoadInventory(this);
             OnInventoryChanged?.Invoke();
         }
 
