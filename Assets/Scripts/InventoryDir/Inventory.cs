@@ -45,6 +45,11 @@ namespace InventoryDir
 
             OnInventoryChanged?.Invoke();
         }
+        
+        public void SaveInventory()
+        {
+            PersistenceSystem.PersistenceManager.SaveInventory(this);
+        }
 
         public ItemData GetItemData(string id)
         {
