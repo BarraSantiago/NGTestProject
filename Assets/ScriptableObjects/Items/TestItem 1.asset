@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: TestItem 1
   m_EditorClassIdentifier: Assembly-CSharp::InventoryDir.Items.ItemData
   id: 1
-  displayName: 
-  description: 
+  displayName: Test item #1
+  description: Test item #1 description
   icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   isConsumable: 0
   isEquippable: 0

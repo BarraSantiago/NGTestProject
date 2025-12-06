@@ -9,11 +9,7 @@ namespace InventoryDir
     {
         [SerializeField] private List<ItemStack> slots = new();
 
-        [Header("Config")]
-        public int size = 20;
-
-        public int maxStackSize = 99;
-
+        [Header("Config")] public int size = 20;
         public ItemDatabase itemDatabase;
 
         public event Action OnInventoryChanged;
@@ -45,43 +41,61 @@ namespace InventoryDir
             return itemDatabase.items.Find(it => it && it.id == id);
         }
 
+        public void LoadFromSlots(List<ItemStack> loaded)
+        {
+            slots = new List<ItemStack>();
+
+            for (int i = 0; i < size; i++)
+            {
+                if (loaded != null && i < loaded.Count)
+                    slots.Add(loaded[i]);
+                else
+                    slots.Add(new ItemStack());
+            }
+
+            OnInventoryChanged?.Invoke();
+        }
+
+        private int GetMaxStack(string itemId)
+        {
+            ItemData data = GetItemData(itemId);
+            return data ? Mathf.Max(1, data.maxStack) : 99;
+        }
+
         public bool AddItem(string itemId, int count = 1)
         {
             if (string.IsNullOrWhiteSpace(itemId)) return false;
             if (count < 1) count = 1;
 
             int remaining = count;
+            int maxStack = GetMaxStack(itemId);
 
-            // Fill existing stacks
+            // Merge into existing stacks
             for (int i = 0; i < slots.Count && remaining > 0; i++)
             {
-                ItemStack s = slots[i];
-                if (s.IsEmpty) continue;
-                if (s.itemId != itemId) continue;
+                ItemStack slot = slots[i];
 
-                int space = maxStackSize - s.count;
-                if (space <= 0) continue;
+                if (slot.IsEmpty || slot.itemId != itemId) continue;
+                if (slot.count >= maxStack) continue;
 
-                int toAdd = Mathf.Min(space, remaining);
-                s.count += toAdd;
-                remaining -= toAdd;
+                int canAdd = Mathf.Min(maxStack - slot.count, remaining);
+                slot.count += canAdd;
+                remaining -= canAdd;
 
-                slots[i] = s;
+                slots[i] = slot;
             }
 
-            // Fill empty slots
+            // Place into empty slots
             for (int i = 0; i < slots.Count && remaining > 0; i++)
             {
                 if (!slots[i].IsEmpty) continue;
 
-                int toAdd = Mathf.Min(maxStackSize, remaining);
-                slots[i] = new ItemStack(itemId, toAdd);
-                remaining -= toAdd;
+                int put = Mathf.Min(maxStack, remaining);
+                slots[i] = new ItemStack(itemId, put);
+                remaining -= put;
             }
 
             OnInventoryChanged?.Invoke();
-
-            // true only if we added everything requested
             return remaining == 0;
         }
 
@@ -113,7 +127,6 @@ namespace InventoryDir
 
             if (from.IsEmpty) return;
 
-            // If destination empty -> move
             if (to.IsEmpty)
             {
                 slots[toIndex] = from;
@@ -122,10 +135,11 @@ namespace InventoryDir
                 return;
             }
 
-            // If same item -> merge
-            if (to.itemId == from.itemId)
+            if (!to.IsEmpty && to.itemId == from.itemId)
             {
-                int space = maxStackSize - to.count;
+                int maxStack = GetMaxStack(from.itemId);
+                int space = maxStack - to.count;
+
                 if (space > 0)
                 {
                     int transfer = Mathf.Min(space, from.count);
@@ -133,14 +147,14 @@ namespace InventoryDir
                     from.count -= transfer;
 
                     slots[toIndex] = to;
-                    slots[fromIndex] = (from.count <= 0) ? new ItemStack() : from;
+                    slots[fromIndex] = from.count > 0 ? from : new ItemStack();
 
                     OnInventoryChanged?.Invoke();
                     return;
                 }
             }
 
-            // Otherwise swap
+            // otherwise swap
             slots[toIndex] = from;
             slots[fromIndex] = to;
 

@@ -7,19 +7,24 @@ using TMPro;
 
 namespace View
 {
-    public class InventorySlot : MonoBehaviour, IPointerClickHandler
+    public class InventorySlot : MonoBehaviour,
+        IPointerClickHandler,
+        IPointerEnterHandler,
+        IPointerExitHandler
     {
         public Image icon;
         public TMP_Text countText;
 
         private Inventory inventory;
         private int index;
+        private InventoryUI ui;
         private ItemStack current;
 
-        public void Setup(Inventory inv, int idx)
+        public void Setup(Inventory inv, int idx, InventoryUI uiRef)
         {
             inventory = inv;
             index = idx;
+            ui = uiRef;
 
             if (!icon) icon = GetComponentInChildren<Image>();
             if (!countText) countText = GetComponentInChildren<TMP_Text>();
@@ -61,6 +66,26 @@ namespace View
             {
                 inventory.UseItem(index);
             }
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (!ui || !inventory || current.IsEmpty) return;
+
+            ItemData d = inventory.GetItemData(current.itemId);
+
+            ui.ShowTooltip(
+                d ? d.displayName : current.itemId,
+                d ? d.description : "",
+                d ? d.icon : null,
+                eventData.position
+            );
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (!ui) return;
+            ui.HideTooltip();
         }
     }
 }

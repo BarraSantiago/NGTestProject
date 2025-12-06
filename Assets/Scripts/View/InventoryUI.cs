@@ -11,6 +11,8 @@ namespace View
         public GameObject slotPrefab;
         public Transform slotsParent;
 
+        public TooltipUI tooltip;
+
         private readonly List<InventorySlot> _slotComponents = new();
 
         private void Awake()
@@ -53,7 +55,7 @@ namespace View
                 InventorySlot slotComp = go.GetComponent<InventorySlot>();
                 if (!slotComp) slotComp = go.AddComponent<InventorySlot>();
 
-                slotComp.Setup(inventory, i);
+                slotComp.Setup(inventory, i, this);
                 _slotComponents.Add(slotComp);
             }
         }
@@ -68,6 +70,18 @@ namespace View
             {
                 _slotComponents[i].SetSlotData(slots[i]);
             }
+        }
+
+        public void ShowTooltip(string title, string description, Sprite icon, Vector2 position)
+        {
+            if (!tooltip) return;
+            tooltip.Show(title, description, icon, position);
+        }
+
+        public void HideTooltip()
+        {
+            if (!tooltip) return;
+            tooltip.Hide();
         }
     }
 }
