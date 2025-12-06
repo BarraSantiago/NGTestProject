@@ -9,20 +9,22 @@ namespace InventoryDir
     {
         [SerializeField] private List<ItemStack> slots = new();
 
-        [Header("Config")] public int size = 20;
+        [Header("Config")] 
+        public int size = 20;
         public ItemDatabase itemDatabase;
-
+        
         public event Action OnInventoryChanged;
 
         private void Awake()
         {
             slots ??= new List<ItemStack>();
+            while (slots.Count < size) slots.Add(new ItemStack());
+        }
 
-            while (slots.Count < size)
-                slots.Add(new ItemStack());
-
-            if (slots.Count > size)
-                slots.RemoveRange(size, slots.Count - size);
+        private void Start()
+        {
+            PersistenceSystem.PersistenceManager.LoadInventory(this);
+            OnInventoryChanged?.Invoke();
         }
 
         public List<ItemStack> GetSlots()
@@ -30,21 +32,9 @@ namespace InventoryDir
             return new List<ItemStack>(slots);
         }
 
-        public ItemStack GetSlot(int index)
-        {
-            if (!ValidIndex(index)) return new ItemStack();
-            return slots[index];
-        }
-
-        public ItemData GetItemData(string id)
-        {
-            return itemDatabase.items.Find(it => it && it.id == id);
-        }
-
         public void LoadFromSlots(List<ItemStack> loaded)
         {
             slots = new List<ItemStack>();
-
             for (int i = 0; i < size; i++)
             {
                 if (loaded != null && i < loaded.Count)
@@ -56,62 +46,66 @@ namespace InventoryDir
             OnInventoryChanged?.Invoke();
         }
 
-        private int GetMaxStack(string itemId)
+        public ItemData GetItemData(string id)
         {
-            ItemData data = GetItemData(itemId);
-            return data ? Mathf.Max(1, data.maxStack) : 99;
+            return itemDatabase.items.Find(it => it.id == id);
+        }
+
+        public ItemStack GetSlot(int index)
+        {
+            if (index < 0 || index >= slots.Count) return new ItemStack();
+            return slots[index];
         }
 
         public bool AddItem(string itemId, int count = 1)
         {
-            if (string.IsNullOrWhiteSpace(itemId)) return false;
-            if (count < 1) count = 1;
+            ItemData data = GetItemData(itemId);
+            int maxStack = data ? Mathf.Max(1, data.maxStack) : 99;
 
-            int remaining = count;
-            int maxStack = GetMaxStack(itemId);
-
-            // Merge into existing stacks
-            for (int i = 0; i < slots.Count && remaining > 0; i++)
+            // try to merge into existing stacks
+            for (int i = 0; i < slots.Count; i++)
             {
                 ItemStack slot = slots[i];
+                if (slot.IsEmpty || slot.itemId != itemId || slot.count >= maxStack) continue;
 
-                if (slot.IsEmpty || slot.itemId != itemId) continue;
-                if (slot.count >= maxStack) continue;
-
-                int canAdd = Mathf.Min(maxStack - slot.count, remaining);
+                int canAdd = Mathf.Min(maxStack - slot.count, count);
                 slot.count += canAdd;
-                remaining -= canAdd;
-
+                count -= canAdd;
                 slots[i] = slot;
+
+                if (count > 0) continue;
+                OnInventoryChanged?.Invoke();
+                return true;
             }
 
-            // Place into empty slots
-            for (int i = 0; i < slots.Count && remaining > 0; i++)
+            // place into empty slots
+            for (int i = 0; i < slots.Count; i++)
             {
                 if (!slots[i].IsEmpty) continue;
 
-                int put = Mathf.Min(maxStack, remaining);
+                int put = Mathf.Min(maxStack, count);
                 slots[i] = new ItemStack(itemId, put);
-                remaining -= put;
+                count -= put;
+
+                if (count > 0) continue;
+                OnInventoryChanged?.Invoke();
+                return true;
             }
 
             OnInventoryChanged?.Invoke();
-            return remaining == 0;
+            // return true if some or all were added
+            return count < 1;
         }
 
         public bool RemoveItemAt(int index, int count = 1)
         {
-            if (!ValidIndex(index)) return false;
-
+            if (index < 0 || index >= slots.Count) return false;
             ItemStack s = slots[index];
+
             if (s.IsEmpty) return false;
-
-            if (count < 1) count = 1;
-
             s.count -= count;
-            if (s.count <= 0)
-                s = new ItemStack();
 
+            if (s.count <= 0) s = new ItemStack();
             slots[index] = s;
             OnInventoryChanged?.Invoke();
             return true;
@@ -127,28 +121,18 @@ namespace InventoryDir
 
             if (from.IsEmpty) return;
 
-            if (to.IsEmpty)
-            {
-                slots[toIndex] = from;
-                slots[fromIndex] = new ItemStack();
-                OnInventoryChanged?.Invoke();
-                return;
-            }
-
+            // try stacking
             if (!to.IsEmpty && to.itemId == from.itemId)
             {
-                int maxStack = GetMaxStack(from.itemId);
-                int space = maxStack - to.count;
-
-                if (space > 0)
+                ItemData data = GetItemData(from.itemId);
+                int maxStack = data ? Mathf.Max(1, data.maxStack) : 99;
+                int canMove = Mathf.Min(from.count, maxStack - to.count);
+                if (canMove > 0)
                 {
-                    int transfer = Mathf.Min(space, from.count);
-                    to.count += transfer;
-                    from.count -= transfer;
-
+                    to.count += canMove;
+                    from.count -= canMove;
                     slots[toIndex] = to;
                     slots[fromIndex] = from.count > 0 ? from : new ItemStack();
-
                     OnInventoryChanged?.Invoke();
                     return;
                 }
@@ -157,18 +141,17 @@ namespace InventoryDir
             // otherwise swap
             slots[toIndex] = from;
             slots[fromIndex] = to;
-
             OnInventoryChanged?.Invoke();
         }
 
         public void UseItem(int index)
         {
             if (!ValidIndex(index)) return;
-
             ItemStack s = slots[index];
+            
             if (s.IsEmpty) return;
-
             ItemData data = GetItemData(s.itemId);
+            
             if (!data) return;
 
             if (data.isConsumable)
@@ -178,6 +161,7 @@ namespace InventoryDir
             }
             else if (data.isEquippable)
             {
+                // example: equipping could be toggled
                 Debug.Log($"Equipped: {data.displayName}");
             }
         }
