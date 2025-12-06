@@ -1,8 +1,10 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using InventoryDir;
 using InventoryDir.Items;
+using TMPro;
 
 namespace View
 {
@@ -10,7 +12,7 @@ namespace View
         IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         public Image icon;
-        public Text countText;
+        public TMP_Text countText;
 
         private Inventory inventory;
         private int index;
@@ -20,6 +22,10 @@ namespace View
         private static GameObject dragIcon;
         private static ItemStack draggingStack;
         private static int draggingFrom = -1;
+        private static bool isDragging;
+        private Coroutine tooltipCoroutine;
+        private bool isHovering;
+        private bool allowTooltip = true;
 
         public void Setup(Inventory inv, int idx, InventoryUI uiRef)
         {
@@ -27,7 +33,7 @@ namespace View
             index = idx;
             ui = uiRef;
             if (!icon) icon = GetComponentInChildren<Image>();
-            if (!countText) countText = GetComponentInChildren<Text>();
+            if (!countText) countText = GetComponentInChildren<TMP_Text>();
         }
 
         public void SetSlotData(ItemStack s)
@@ -45,14 +51,15 @@ namespace View
             }
             else
             {
-                ItemData data = inventory.GetItemData(s.itemId);
+                ItemData data = inventory ? inventory.GetItemData(s.itemId) : null;
                 if (icon)
                 {
                     icon.enabled = data && data.icon;
                     icon.sprite = data ? data.icon : null;
                 }
 
-                if (countText) countText.text = (s.count > 1) ? s.count.ToString() : "";
+                if (countText)
+                    countText.text = (s.count > 1) ? s.count.ToString() : "";
             }
         }
 
@@ -67,15 +74,26 @@ namespace View
         public void OnBeginDrag(PointerEventData eventData)
         {
             if (current.IsEmpty) return;
+
+            isDragging = true;
+            isHovering = false;
+            allowTooltip = false;
+
+            if (tooltipCoroutine != null)
+            {
+                StopCoroutine(tooltipCoroutine);
+                tooltipCoroutine = null;
+            }
+            if (ui) ui.HideTooltip();
+
             draggingStack = current;
             draggingFrom = index;
 
-            // create icon
             dragIcon = new GameObject("DragIcon");
             Image img = dragIcon.AddComponent<Image>();
             img.raycastTarget = false;
             ItemData data = inventory.GetItemData(current.itemId);
-            
+
             if (data && data.icon) img.sprite = data.icon;
             dragIcon.transform.SetParent(transform.root, false);
             dragIcon.transform.SetAsLastSibling();
@@ -98,14 +116,13 @@ namespace View
             if (dragIcon) Destroy(dragIcon);
             if (draggingFrom >= 0)
             {
-                // if not dropped on a slot, put back
                 if (!draggingStack.IsEmpty)
                 {
-                    // restore original if not swapped
                     inventory.MoveItem(draggingFrom, draggingFrom);
                 }
             }
 
+            isDragging = false;
             draggingStack = new ItemStack();
             draggingFrom = -1;
             ui.RefreshUI();
@@ -114,27 +131,66 @@ namespace View
         public void OnDrop(PointerEventData eventData)
         {
             if (draggingFrom < 0) return;
-            
-            // perform move on inventory
+
             inventory.MoveItem(draggingFrom, index);
             draggingStack = new ItemStack();
             draggingFrom = -1;
+            
+            allowTooltip = false;
+            
             ui.RefreshUI();
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (current.IsEmpty) return;
-            
-            ItemData d = inventory.GetItemData(current.itemId);
-            
-            ui.ShowTooltip(d ? d.displayName : current.itemId, d ? d.description : "",
-                d ? d.icon : null, eventData.position);
+            if (!ui || !inventory || current.IsEmpty) return;
+
+            isHovering = true;
+            allowTooltip = true;
+
+            if (isDragging) return;
+
+            if (tooltipCoroutine != null)
+                StopCoroutine(tooltipCoroutine);
+
+            tooltipCoroutine = StartCoroutine(ShowTooltipDelayed(eventData));
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            isHovering = false;
+            allowTooltip = true;
+
+            if (tooltipCoroutine != null)
+            {
+                StopCoroutine(tooltipCoroutine);
+                tooltipCoroutine = null;
+            }
+
+            if (!ui) return;
             ui.HideTooltip();
+        }
+
+        private IEnumerator ShowTooltipDelayed(PointerEventData eventData)
+        {
+            yield return new WaitForSeconds(TooltipUI.ShowDelay);
+
+            if (!isHovering || !allowTooltip || isDragging) yield break;
+
+            ItemData d = inventory.GetItemData(current.itemId);
+
+            ui.ShowTooltip(
+                d ? d.displayName : current.itemId,
+                d ? d.description : "",
+                d ? d.icon : null,
+                eventData.position
+            );
+
+            while (isHovering && !isDragging)
+            {
+                ui.UpdateTooltipPosition(eventData.position);
+                yield return null;
+            }
         }
     }
 }

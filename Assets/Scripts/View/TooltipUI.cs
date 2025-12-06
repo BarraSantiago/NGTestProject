@@ -6,13 +6,19 @@ namespace View
 {
     public class TooltipUI : MonoBehaviour
     {
+        public Image iconImage;
         public TMP_Text titleText;
         public TMP_Text descriptionText;
-        public Image iconImage;
         public CanvasGroup group;
+        
+        public static float ShowDelay = 0.1f;
+        
+        private RectTransform rectTransform;
 
         private void Awake()
         {
+            rectTransform = GetComponent<RectTransform>();
+
             if (!group) group = GetComponent<CanvasGroup>();
             Hide();
         }
@@ -35,6 +41,14 @@ namespace View
             }
 
             gameObject.SetActive(true);
+        }
+
+        public void UpdatePosition(Vector2 position)
+        {
+            if (!rectTransform) return;
+
+            rectTransform.position = position;
+            rectTransform.pivot = new Vector2(0, 1);
         }
 
         public void Hide()

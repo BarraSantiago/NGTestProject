@@ -70,6 +70,12 @@ namespace View
             if (!tooltip) return;
             tooltip.Show(title, description, icon, position);
         }
+        
+        public void UpdateTooltipPosition(Vector2 position)
+        {
+            if (!tooltip) return;
+            tooltip.UpdatePosition(position);
+        }
 
         public void HideTooltip()
         {
