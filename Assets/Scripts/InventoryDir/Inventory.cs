@@ -11,6 +11,9 @@ namespace InventoryDir
 
         [Header("Config")]
         public int size = 20;
+
+        public int maxStackSize = 99;
+
         public ItemDatabase itemDatabase;
 
         public event Action OnInventoryChanged;
@@ -19,16 +22,11 @@ namespace InventoryDir
         {
             slots ??= new List<ItemStack>();
 
-            // Ensure fixed size
             while (slots.Count < size)
-            {
                 slots.Add(new ItemStack());
-            }
 
             if (slots.Count > size)
-            {
                 slots.RemoveRange(size, slots.Count - size);
-            }
         }
 
         public List<ItemStack> GetSlots()
@@ -38,7 +36,8 @@ namespace InventoryDir
 
         public ItemStack GetSlot(int index)
         {
-            return !ValidIndex(index) ? new ItemStack() : slots[index];
+            if (!ValidIndex(index)) return new ItemStack();
+            return slots[index];
         }
 
         public ItemData GetItemData(string id)
@@ -51,18 +50,39 @@ namespace InventoryDir
             if (string.IsNullOrWhiteSpace(itemId)) return false;
             if (count < 1) count = 1;
 
-            for (int i = 0; i < slots.Count; i++)
+            int remaining = count;
+
+            // Fill existing stacks
+            for (int i = 0; i < slots.Count && remaining > 0; i++)
+            {
+                ItemStack s = slots[i];
+                if (s.IsEmpty) continue;
+                if (s.itemId != itemId) continue;
+
+                int space = maxStackSize - s.count;
+                if (space <= 0) continue;
+
+                int toAdd = Mathf.Min(space, remaining);
+                s.count += toAdd;
+                remaining -= toAdd;
+
+                slots[i] = s;
+            }
+
+            // Fill empty slots
+            for (int i = 0; i < slots.Count && remaining > 0; i++)
             {
                 if (!slots[i].IsEmpty) continue;
 
-                slots[i] = new ItemStack(itemId, count);
-                OnInventoryChanged?.Invoke();
-                return true;
+                int toAdd = Mathf.Min(maxStackSize, remaining);
+                slots[i] = new ItemStack(itemId, toAdd);
+                remaining -= toAdd;
             }
 
-            // Inventory full
             OnInventoryChanged?.Invoke();
-            return false;
+
+            // true only if we added everything requested
+            return remaining == 0;
         }
 
         public bool RemoveItemAt(int index, int count = 1)
@@ -91,6 +111,36 @@ namespace InventoryDir
             ItemStack from = slots[fromIndex];
             ItemStack to = slots[toIndex];
 
+            if (from.IsEmpty) return;
+
+            // If destination empty -> move
+            if (to.IsEmpty)
+            {
+                slots[toIndex] = from;
+                slots[fromIndex] = new ItemStack();
+                OnInventoryChanged?.Invoke();
+                return;
+            }
+
+            // If same item -> merge
+            if (to.itemId == from.itemId)
+            {
+                int space = maxStackSize - to.count;
+                if (space > 0)
+                {
+                    int transfer = Mathf.Min(space, from.count);
+                    to.count += transfer;
+                    from.count -= transfer;
+
+                    slots[toIndex] = to;
+                    slots[fromIndex] = (from.count <= 0) ? new ItemStack() : from;
+
+                    OnInventoryChanged?.Invoke();
+                    return;
+                }
+            }
+
+            // Otherwise swap
             slots[toIndex] = from;
             slots[fromIndex] = to;
 

@@ -744,8 +744,13 @@ MonoBehaviour:
   - itemId: 1
     count: 3
   - itemId: 2
-    count: 99
+    count: 30
+  - itemId: 2
+    count: 1
+  - itemId: 2
+    count: 5
   size: 20
+  maxStackSize: 99
   itemDatabase: {fileID: 11400000, guid: c7302248bed0c1c44b59790350aaa724, type: 2}
 --- !u!4 &1241292799
 Transform:
