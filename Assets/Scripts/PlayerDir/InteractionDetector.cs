@@ -17,6 +17,7 @@ namespace PlayerDir
         [SerializeField] private InteractionPromptUI promptUIPrefab;
         [SerializeField] private string interactionKey = "E";
 
+        public static InteractableNPC CurrentNPC { get; private set; }
         private IInteractable currentInteractable;
         private List<IInteractable> nearbyInteractables = new();
         private Dictionary<IInteractable, InteractionPromptUI> activePrompts = new();
@@ -111,13 +112,16 @@ namespace PlayerDir
         {
             if (currentInteractable == null) return;
             currentInteractable.Interact(gameObject);
-                
-            if (activePrompts.TryGetValue(currentInteractable, out InteractionPromptUI prompt))
+            
+            if (currentInteractable is InteractableNPC npc)
             {
-                prompt.OnInteracted();
-                Destroy(prompt.gameObject, 0.5f);
-                activePrompts.Remove(currentInteractable);
+                CurrentNPC = npc;
             }
+
+            if (!activePrompts.TryGetValue(currentInteractable, out InteractionPromptUI prompt)) return;
+            prompt.OnInteracted();
+            Destroy(prompt.gameObject, 0.5f);
+            activePrompts.Remove(currentInteractable);
         }
 
         private void OnDisable()

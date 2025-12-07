@@ -1,5 +1,6 @@
 using System.Collections;
 using Interactables;
+using PlayerDir;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -35,6 +36,7 @@ namespace Dialogue
         private bool isInDialogue;
         private bool isSubscribed = false;
         private Coroutine transitionCoroutine;
+        private Player _player;
 
         private void Awake()
         {
@@ -53,6 +55,7 @@ namespace Dialogue
             {
                 dialogueCamera.Priority = 0;
             }
+            _player = FindFirstObjectByType<Player>();
         }
 
         private void Start()
@@ -95,24 +98,27 @@ namespace Dialogue
 
         private void OnDialogueStart(string speakerName, string firstLine)
         {
-            GameObject npc = GameObject.Find(speakerName);
+            InteractableNPC npc = InteractionDetector.CurrentNPC;
             if (!npc)
             {
-                // Try to find by tag or component
                 InteractableNPC[] npcs = FindObjectsByType<InteractableNPC>(FindObjectsSortMode.None);
-                foreach (var n in npcs)
+                foreach (InteractableNPC n in npcs)
                 {
                     if (n.name.Contains(speakerName) || n.GetComponent<InteractableNPC>())
                     {
-                        npc = n.gameObject;
+                        npc = n;
                         break;
                     }
                 }
             }
-
+        
             if (npc)
             {
-                FocusOnNPC(npc.transform);
+                FocusOnNPC(npc.cameraLookTarget);
+            }
+            else
+            {
+                Debug.LogWarning($"Could not find NPC '{speakerName}' for camera focus!");
             }
         }
 
@@ -151,68 +157,16 @@ namespace Dialogue
 
         private IEnumerator TransitionToDialogue()
         {
-            if (!dialogueCamera) yield break;
+            if (!mainCamera || !currentNPCTarget) yield break;
         
             // Disable player movement
             DisablePlayerMovement();
         
-            // Position dialogue camera
-            Vector3 targetPosition = currentNPCTarget.position +
-                                     currentNPCTarget.right * cameraOffset.x +
-                                     currentNPCTarget.up * cameraOffset.y +
-                                     currentNPCTarget.forward * cameraOffset.z;
+            // Simply set the main camera to look at the NPC
+            mainCamera.LookAt = currentNPCTarget;
         
-            dialogueCamera.transform.position = targetPosition;
-            dialogueCamera.LookAt = currentNPCTarget;
-            dialogueCamera.Follow = currentNPCTarget;
-        
-            // Switch to dialogue camera
-            dialogueCamera.Priority = 20;
-            if (mainCamera) mainCamera.Priority = 10;
-        
-            float elapsed = 0f;
-            float duration = 1f / transitionSpeed;
-        
-            float startVignette = vignette ? vignette.intensity.value : 0f;
-            float startFOV = normalFOV; // Use normalFOV as starting point
-            if (dialogueCamera) startFOV = dialogueCamera.m_Lens.FieldOfView;
-            float startPanini = paniniProjection ? paniniProjection.distance.value : 0f;
-        
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.SmoothStep(0, 1, elapsed / duration);
-        
-                // Vignette effect
-                if (vignette)
-                {
-                    vignette.active = true;
-                    vignette.intensity.value = Mathf.Lerp(startVignette, targetVignetteIntensity, t);
-                }
-        
-                // FOV zoom
-                if (useFOVZoom && dialogueCamera)
-                {
-                    dialogueCamera.m_Lens.FieldOfView = Mathf.Lerp(startFOV, dialogueFOV, t);
-                }
-        
-                // Panini projection
-                if (usePaniniProjection && paniniProjection)
-                {
-                    paniniProjection.distance.value = Mathf.Lerp(startPanini, paniniDistance, t);
-                }
-        
-                yield return null;
-            }
-        
-            // Ensure final values
-            if (vignette) vignette.intensity.value = targetVignetteIntensity;
-            if (useFOVZoom && dialogueCamera) dialogueCamera.m_Lens.FieldOfView = dialogueFOV;
-            if (usePaniniProjection && paniniProjection)
-                paniniProjection.distance.value = paniniDistance;
+            yield return null;
         }
-        
-        
         
         private void DisablePlayerMovement()
         {
@@ -235,67 +189,15 @@ namespace Dialogue
 
         private IEnumerator TransitionToNormal()
         {
-            float elapsed = 0f;
-            float duration = 1f / transitionSpeed;
+            if (!mainCamera) yield break;
         
-            float startVignette = vignette ? vignette.intensity.value : 0f;
-            float startFOV = dialogueFOV; // Start from dialogue FOV
-            if (dialogueCamera) startFOV = dialogueCamera.m_Lens.FieldOfView;
-            float startPanini = paniniProjection ? paniniProjection.distance.value : 0f;
+            // Clear the look target
+            mainCamera.LookAt = _player.LookAtTarget;
         
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.SmoothStep(0, 1, elapsed / duration);
-        
-                // Vignette effect
-                if (vignette)
-                {
-                    vignette.intensity.value = Mathf.Lerp(startVignette, 0f, t);
-                }
-        
-                // FOV zoom
-                if (useFOVZoom && dialogueCamera)
-                {
-                    dialogueCamera.m_Lens.FieldOfView = Mathf.Lerp(startFOV, normalFOV, t);
-                }
-        
-                // Panini projection
-                if (usePaniniProjection && paniniProjection)
-                {
-                    paniniProjection.distance.value = Mathf.Lerp(startPanini, 0f, t);
-                }
-        
-                yield return null;
-            }
-        
-            // Ensure final values are set
-            if (vignette)
-            {
-                vignette.intensity.value = 0f;
-                vignette.active = false;
-            }
-        
-            if (useFOVZoom && dialogueCamera)
-            {
-                dialogueCamera.m_Lens.FieldOfView = normalFOV;
-            }
-        
-            if (usePaniniProjection && paniniProjection)
-            {
-                paniniProjection.distance.value = 0f;
-            }
-        
-            // Switch back to main camera AFTER effects are done
-            if (dialogueCamera) dialogueCamera.Priority = 0;
-            if (mainCamera) mainCamera.Priority = 20;
-        
-            // Clear references
-            dialogueCamera.LookAt = null;
-            dialogueCamera.Follow = null;
-        
-            // Re-enable player movement after transition
+            // Re-enable player movement
             EnablePlayerMovement();
+        
+            yield return null;
         }
         
         private void CreateDialogueCamera()
