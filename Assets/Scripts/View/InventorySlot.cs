@@ -174,18 +174,19 @@ namespace View
         private IEnumerator ShowTooltipDelayed(PointerEventData eventData)
         {
             yield return new WaitForSeconds(TooltipUI.ShowDelay);
-
+        
             if (!isHovering || !allowTooltip || isDragging) yield break;
-
+        
             ItemData d = inventory.GetItemData(current.itemId);
-
+        
             ui.ShowTooltip(
                 d ? d.displayName : current.itemId,
                 d ? d.description : "",
                 d ? d.icon : null,
-                eventData.position
+                eventData.position,
+                d
             );
-
+        
             while (isHovering && !isDragging)
             {
                 ui.UpdateTooltipPosition(eventData.position);

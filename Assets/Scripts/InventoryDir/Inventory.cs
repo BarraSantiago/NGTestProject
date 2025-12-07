@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using InventoryDir.Items;
+using PlayerDir;
 using UnityEngine;
 
 namespace InventoryDir
 {
     public class Inventory : MonoBehaviour
     {
-        [SerializeField] private List<ItemStack> slots = new();
-
+        [SerializeField] private Player player;
         [Header("Config")] 
+        [SerializeField] private List<ItemStack> slots = new();
         public int size = 20;
         public ItemDatabase itemDatabase;
         
@@ -17,6 +18,7 @@ namespace InventoryDir
 
         private void Awake()
         {
+            player ??= FindFirstObjectByType<Player>();
             slots ??= new List<ItemStack>();
             while (slots.Count < size) slots.Add(new ItemStack());
             PersistenceSystem.PersistenceManager.LoadInventory(this);
@@ -153,20 +155,26 @@ namespace InventoryDir
         {
             if (!ValidIndex(index)) return;
             ItemStack s = slots[index];
-            
+        
             if (s.IsEmpty) return;
             ItemData data = GetItemData(s.itemId);
-            
+        
             if (!data) return;
-
+        
             if (data.isConsumable)
             {
+                if (player && data.effects != null)
+                {
+                    foreach (ItemEffect effect in data.effects)
+                    {
+                        player.Stats.ApplyEffect(effect);
+                    }
+                }
+        
                 RemoveItemAt(index, 1);
-                // TODO: Effect system
             }
             else if (data.isEquippable)
             {
-                // example: equipping could be toggled
                 Debug.Log($"Equipped: {data.displayName}");
             }
         }

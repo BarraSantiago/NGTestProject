@@ -16,15 +16,19 @@ namespace InventoryDir.Items
         public bool isEquippable;
         public int maxStack = 99;
 
+        [Header("Effects (for consumables)")]
+        public ItemEffect[] effects;
+
+        /// <summary>
+        /// Generates a non-changeable ID for the item when created.
+        /// </summary>
         private void OnValidate()
         {
-            if (string.IsNullOrEmpty(guid))
-            {
-                guid = System.Guid.NewGuid().ToString();
-                #if UNITY_EDITOR
-                UnityEditor.EditorUtility.SetDirty(this);
-                #endif
-            }
+            if (!string.IsNullOrEmpty(guid)) return;
+            guid = System.Guid.NewGuid().ToString();
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
         }
     }
 }

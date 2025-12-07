@@ -19,3 +19,4 @@ MonoBehaviour:
   isConsumable: 0
   isEquippable: 0
   maxStack: 99
+  effects: []

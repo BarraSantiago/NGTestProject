@@ -65,10 +65,10 @@ namespace View
             }
         }
 
-        public void ShowTooltip(string title, string description, Sprite icon, Vector2 position)
+        public void ShowTooltip(string title, string desc, Sprite icon, Vector2 pos, ItemData itemData = null)
         {
             if (!tooltip) return;
-            tooltip.Show(title, description, icon, position);
+            tooltip.Show(title, desc, icon, pos, itemData);
         }
         
         public void UpdateTooltipPosition(Vector2 position)
