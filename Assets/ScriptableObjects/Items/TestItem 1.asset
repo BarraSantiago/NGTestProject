@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: TestItem 1
   m_EditorClassIdentifier: Assembly-CSharp::InventoryDir.Items.ItemData
   guid: a596ad91-deb4-4744-8569-8aee8cc98271
-  displayName: Test item #1
-  description: Test item #1 description
-  icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  displayName: Scale Decrease Potion
+  description: This potion reduces the size of the consumer.
+  icon: {fileID: 21300000, guid: d12487be84d986f47b92776452c7fde7, type: 3}
   isConsumable: 1
   isEquippable: 0
   maxStack: 99

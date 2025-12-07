@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: TestItem
   m_EditorClassIdentifier: Assembly-CSharp::InventoryDir.Items.ItemData
   guid: 8a79c235-0aa2-4ac9-951c-a09732783927
-  displayName: Test item #0
-  description: Test item #0 description
-  icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
+  displayName: Scale Increase Potion
+  description: This potion increases the size of the consumer.
+  icon: {fileID: 21300000, guid: d1e9d87d8d6c4054f821c20494c629ca, type: 3}
   isConsumable: 1
   isEquippable: 0
   maxStack: 99

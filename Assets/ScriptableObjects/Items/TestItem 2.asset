@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: TestItem 2
   m_EditorClassIdentifier: Assembly-CSharp::InventoryDir.Items.ItemData
   guid: f0b3e816-cf74-4cf5-bc96-b85a42ddfefd
-  displayName: Test item #2
-  description: Test item #2 description
-  icon: {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
+  displayName: Medium Speed Potion
+  description: This potion makes the consumer really fast.
+  icon: {fileID: 21300000, guid: 743bdacffa4d28347a3686ab66c5cc04, type: 3}
   isConsumable: 1
   isEquippable: 0
   maxStack: 99
   effects:
   - type: 2
-    value: 20
+    value: 10
     duration: 5
