@@ -2,6 +2,9 @@
 
 A third-person action-adventure game built with Unity featuring player movement, inventory system, dialogue interactions, and consumable items with dynamic effects.
 
+I recommend trying the Item Editor window, which you can access through Unity’s Tools menu. It’s an excellent way for designers to comfortably create new items or modify existing ones.
+Also, make sure to try the inventory’s debug menu, you can use it to give yourself potions that affect the character’s speed, jump height, or size. It’s a great way to see how dynamic the character animations truly are.
+
 ## Controls
 
 - **WASD** - Move
