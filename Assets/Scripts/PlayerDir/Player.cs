@@ -5,6 +5,7 @@ namespace PlayerDir
     [RequireComponent(typeof(PlayerStats))]
     public class Player : MonoBehaviour
     {
+        [SerializeField] public Transform LookAtTarget;
         public PlayerStats Stats => stats;
         
         private PlayerStats stats;

@@ -9,6 +9,7 @@ namespace PlayerDir
     {
         [SerializeField] private InventoryUI inventoryUI;
         [SerializeField] private InteractionDetector interactionDetector;
+        [SerializeField] private PauseManager _pauseManager;
         
         private StarterAssetsInputs inputs;
 
@@ -41,6 +42,13 @@ namespace PlayerDir
             {
                 interactionDetector.Interact();
             }
+        }
+        
+        private void OnPause(InputValue value)
+        {
+            if (!value.isPressed) return;
+
+            _pauseManager?.OnPause();
         }
     }
 }

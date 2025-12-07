@@ -2897,6 +2897,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 893c097f03fd4c97a63ecbf4bf051716, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDir.Player
+  LookAtTarget: {fileID: 7983116874876023667}
 --- !u!114 &3981969548713744861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2946,6 +2947,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDir.InputHandler
   inventoryUI: {fileID: 0}
   interactionDetector: {fileID: 98830851269619988}
+  _pauseManager: {fileID: 0}
 --- !u!114 &98830851269619988
 MonoBehaviour:
   m_ObjectHideFlags: 0
