@@ -70,10 +70,18 @@ namespace StarterAssets
 		{
 			SetCursorState(cursorLocked);
 		}
+		
+		public void UpdateCursorState(bool newState)
+		{
+			cursorLocked = newState;
+			cursorInputForLook = newState;
+			SetCursorState(cursorLocked);
+		}
 
 		private void SetCursorState(bool newState)
 		{
 			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
+			Cursor.visible = !newState;
 		}
 	}
 	

@@ -4,7 +4,7 @@ public class TerrainTreeToggle : MonoBehaviour
 {
     private void OnEnable()
     {
-        var terrains = FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Terrain[] terrains = FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (Terrain terrain in terrains)
         {
             terrain.drawTreesAndFoliage = false;
@@ -15,7 +15,7 @@ public class TerrainTreeToggle : MonoBehaviour
 
     private void OnDisable()
     {
-        var terrains = FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Terrain[] terrains = FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (Terrain terrain in terrains)
         {
             terrain.drawTreesAndFoliage = true;

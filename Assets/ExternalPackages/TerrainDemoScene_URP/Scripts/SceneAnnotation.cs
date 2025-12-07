@@ -21,7 +21,7 @@ public class SceneAnnotation : MonoBehaviour, IComparable<SceneAnnotation>
     public void OnDrawGizmos()
     {
 #if UNITY_EDITOR
-        var xform = gameObject.transform;
+        Transform xform = gameObject.transform;
         Gizmos.DrawIcon(xform.position + Vector3.up, "Assets/TerrainToolsDemo/Scripts/Help_Icon.png", true);
         Gizmos.matrix = xform.localToWorldMatrix;
         Gizmos.DrawFrustum(Vector3.back, 90, 0.5f, 0.25f, 2);
@@ -33,7 +33,7 @@ public class SceneAnnotation : MonoBehaviour, IComparable<SceneAnnotation>
     {
         //  Use the ID Value to sort scene objects for the inspector tool
         //  Add an extra check in case somebody got lazy and duplicated w/o changing IDs
-        var idx = id.CompareTo(other.id);
+        int idx = id.CompareTo(other.id);
         if (idx == 0) idx = string.Compare(headline, other.headline, StringComparison.Ordinal);
         return idx;
     }
@@ -50,8 +50,8 @@ public class SceneAnnotationEditor : Editor
 
     public override VisualElement CreateInspectorGUI()
     {
-        var root = new VisualElement();
-        var visualTree = Resources.Load<VisualTreeAsset>(UXMLPath);
+        VisualElement root = new VisualElement();
+        VisualTreeAsset visualTree = Resources.Load<VisualTreeAsset>(UXMLPath);
         VisualElement inspectorUI = visualTree.CloneTree();
 
         root.Add(inspectorUI);
@@ -60,26 +60,26 @@ public class SceneAnnotationEditor : Editor
         root.Q<Button>("BackBtn").clicked += () => { GoToAnnotation(-1); };
 
 
-        var sceneAnnotation = (SceneAnnotation) target;
+        SceneAnnotation sceneAnnotation = (SceneAnnotation) target;
         if (sceneAnnotation == null || sceneAnnotation.textAsset == null) return root;
 
-        var displayElement = root.Q<VisualElement>("Spans");
+        VisualElement displayElement = root.Q<VisualElement>("Spans");
 
-        foreach (var eachParagraphText in sceneAnnotation.textAsset.text.Split('\n'))
+        foreach (string eachParagraphText in sceneAnnotation.textAsset.text.Split('\n'))
         {
-            var paragraph = new VisualElement();
+            VisualElement paragraph = new VisualElement();
             paragraph.AddToClassList("paragraph-container");
 
-            foreach (var word in eachParagraphText.Split(' '))
+            foreach (string word in eachParagraphText.Split(' '))
             {
-                var displayText = word;
-                var linkText = "";
+                string displayText = word;
+                string linkText = "";
 
                 // Markdown-styel link, but we have to use underscores as word seps:
                 // [link_text_here](https:the-url.com)
                 if (word.StartsWith("["))
                 {
-                    var paren = word.IndexOf("(");
+                    int paren = word.IndexOf("(");
                     Debug.Assert(paren > -1, $"Incorrectly formatted link {word}");
                     displayText = word.Substring(1, paren - 2);
                     displayText = displayText.Replace("_", " ");
@@ -93,7 +93,7 @@ public class SceneAnnotationEditor : Editor
                 // Markdown _ for italics
                 if (word.StartsWith("_")) displayText = $"<i>{word.Replace("_", "")}</i>";
 
-                var displaySpan = new Label(displayText);
+                Label displaySpan = new Label(displayText);
                 displaySpan.AddToClassList("display-text");
                 if (linkText != "")
                 {
@@ -119,7 +119,7 @@ public class SceneAnnotationEditor : Editor
         }
         else
         {
-            var linked = AssetDatabase.LoadAssetAtPath<Object>(link);
+            Object linked = AssetDatabase.LoadAssetAtPath<Object>(link);
             EditorGUIUtility.PingObject(linked);
             AssetDatabase.OpenAsset(linked);
             // Restore the selection to make it less confusing when selection is changed...
@@ -129,7 +129,7 @@ public class SceneAnnotationEditor : Editor
 
     private static List<SceneAnnotation> GetSceneAnnotations()
     {
-        var annotationList = new List<SceneAnnotation>(FindObjectsByType<SceneAnnotation>(FindObjectsSortMode.None));
+        List<SceneAnnotation> annotationList = new List<SceneAnnotation>(FindObjectsByType<SceneAnnotation>(FindObjectsSortMode.None));
         annotationList.Sort();
         return annotationList;
     }
@@ -141,9 +141,9 @@ public class SceneAnnotationEditor : Editor
     /// <param name="delta">1 for next annotation, -1 for the previous one</param>
     private void GoToAnnotation(int delta)
     {
-        var self = (SceneAnnotation) target;
-        var annotationList = GetSceneAnnotations();
-        var here = annotationList.IndexOf(self);
+        SceneAnnotation self = (SceneAnnotation) target;
+        List<SceneAnnotation> annotationList = GetSceneAnnotations();
+        int here = annotationList.IndexOf(self);
         here += delta;
         // C# doesn't handle negative modulo
         here += annotationList.Count;
@@ -158,10 +158,10 @@ public class SceneAnnotationEditor : Editor
     /// <param name="targetTransform">Transform to match</param>
     private static void AlignCamera(Transform targetTransform)
     {
-        var view = SceneView.lastActiveSceneView;
+        SceneView view = SceneView.lastActiveSceneView;
         if (view == null) return;
 
-        var target = view.camera.GameObject();
+        GameObject target = view.camera.GameObject();
         target.transform.position = targetTransform.position;
         target.transform.rotation = targetTransform.rotation;
         view.AlignViewToObject(target.transform);
@@ -179,7 +179,7 @@ public class SceneAnnotationEditor : Editor
 
     static void AutoSelectFirstItem()
     {
-        var annotationList = GetSceneAnnotations();
+        List<SceneAnnotation> annotationList = GetSceneAnnotations();
         if (annotationList.Count < 1) return;
         
         Selection.objects = new UnityEngine.Object[] {annotationList[0].gameObject};
