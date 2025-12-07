@@ -1937,18 +1937,18 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 890706875}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1724190472}
   - {fileID: 857223194}
-  m_Father: {fileID: 1328045865}
+  m_Father: {fileID: 1330037203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 667, y: 337.0769}
+  m_AnchoredPosition: {x: -94.77002, y: 337.8269}
   m_SizeDelta: {x: 160, y: 49.8461}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &890706877
@@ -1994,7 +1994,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 890706878}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1330037205}
+        m_TargetAssemblyTypeName: UnityEngine.Animator, UnityEngine
+        m_MethodName: SetTrigger
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: Open
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &890706878
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2750,7 +2762,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -2771,7 +2783,6 @@ RectTransform:
   - {fileID: 927578743}
   - {fileID: 1203995947}
   - {fileID: 1330037203}
-  - {fileID: 890706876}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2789,8 +2800,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1330037203}
   - component: {fileID: 1330037204}
+  - component: {fileID: 1330037206}
+  - component: {fileID: 1330037205}
   m_Layer: 5
-  m_Name: GameObject
+  m_Name: DebugMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2809,6 +2822,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1988817002}
+  - {fileID: 890706876}
   m_Father: {fileID: 1328045865}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2830,6 +2844,51 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
+--- !u!95 &1330037205
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1330037202}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 4527b0b920a9ee24b89697bea5f77663, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1330037206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1330037202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a97cd074792472f8f5da80422c44e82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::View.InventoryDebugMenu
+  inventory: {fileID: 1241292798}
+  itemDropdown: {fileID: 1431968624}
+  countInput: {fileID: 1706270021}
+  addItemButton: {fileID: 560407685}
+  removeAllButton: {fileID: 665402271}
+  removeOneButton: {fileID: 1791804166}
+  clearInventoryButton: {fileID: 784664130}
+  fillInventoryButton: {fileID: 1461100807}
+  saveButton: {fileID: 1142186694}
+  loadButton: {fileID: 1545254744}
+  statusText: {fileID: 1812481941}
 --- !u!1 &1376955535
 GameObject:
   m_ObjectHideFlags: 0
@@ -4468,11 +4527,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1988817002}
-  - component: {fileID: 1988817004}
   - component: {fileID: 1988817003}
-  - component: {fileID: 1988817005}
   m_Layer: 5
-  m_Name: DebugMenu
+  m_Name: DebugOptions
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4504,7 +4561,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 9, y: 0}
+  m_AnchoredPosition: {x: -170, y: 0}
   m_SizeDelta: {x: 351.0613, y: 723.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1988817003
@@ -4533,51 +4590,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &1988817004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1988817001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a97cd074792472f8f5da80422c44e82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::View.InventoryDebugMenu
-  inventory: {fileID: 1241292798}
-  itemDropdown: {fileID: 1431968624}
-  countInput: {fileID: 1706270021}
-  addItemButton: {fileID: 560407685}
-  removeAllButton: {fileID: 665402271}
-  removeOneButton: {fileID: 1791804166}
-  clearInventoryButton: {fileID: 784664130}
-  fillInventoryButton: {fileID: 1461100807}
-  saveButton: {fileID: 1142186694}
-  loadButton: {fileID: 1545254744}
-  statusText: {fileID: 1812481941}
---- !u!95 &1988817005
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1988817001}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2058704442
 GameObject:
   m_ObjectHideFlags: 0
