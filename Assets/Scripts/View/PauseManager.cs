@@ -1,3 +1,4 @@
+using StarterAssets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -8,7 +9,8 @@ namespace View
         [Header("Pause Menu")]
         [SerializeField] private GameObject pauseMenuUI;
         [SerializeField] private string mainMenuSceneName = "MainMenu";
-        
+        private StarterAssetsInputs inputs;
+
         private bool isPaused = false;
 
         private void Start()
@@ -17,6 +19,7 @@ namespace View
             {
                 pauseMenuUI.SetActive(false);
             }
+            inputs = FindFirstObjectByType<StarterAssetsInputs>();
         }
         
         public bool OnPause()
@@ -54,6 +57,7 @@ namespace View
                 pauseMenuUI.SetActive(false);
             }
             
+            inputs.UpdateCursorState(true);
             Time.timeScale = 1f;
             isPaused = false;
             

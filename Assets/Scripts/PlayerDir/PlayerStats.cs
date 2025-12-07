@@ -98,10 +98,10 @@ namespace PlayerDir
                         Vector3 newScale = baseScale * scaleMultiplier;
                         
                         float heightDifference = (newScale.y - transform.localScale.y) / 2f;
+
+                        StartCoroutine(StartEffectCoroutine(newScale));
                         
-                        transform.localScale = newScale;
-                        
-                        transform.position += Vector3.up * heightDifference * 1.2f;
+                        transform.position += Vector3.up * heightDifference * 5f;
                         
                         StartTimedEffect(effect);
                         Debug.Log($"Scale increased by {effect.value * 100}% for {effect.duration}s");
@@ -145,6 +145,13 @@ namespace PlayerDir
             activeEffects.Add(active);
             StartCoroutine(TimedEffectCoroutine(active));
         }
+        
+        private IEnumerator StartEffectCoroutine(Vector3 newScale)
+        {
+            yield return new WaitForEndOfFrame();
+            
+            transform.localScale = newScale;
+        }
 
         private IEnumerator TimedEffectCoroutine(ActiveEffect active)
         {
@@ -181,19 +188,14 @@ namespace PlayerDir
                     break;
 
                 case EffectType.ScaleIncrease:
+                    transform.localScale = baseScale;
+                    break;
                 case EffectType.ScaleDecrease:
                     float heightDiff = (transform.localScale.y - baseScale.y) / 2f;
                     
-                    transform.localScale = baseScale;
-                    
-                    if (effect.type == EffectType.ScaleIncrease)
-                    {
-                        transform.position -= Vector3.up * heightDiff;
-                    }
-                    else if (effect.type == EffectType.ScaleDecrease)
-                    {
-                        transform.position += Vector3.up * Mathf.Abs(heightDiff);
-                    }
+                    StartCoroutine(StartEffectCoroutine(baseScale));
+
+                    transform.position += Vector3.up * (Mathf.Abs(heightDiff) * 3f);
                     
                     Debug.Log("Scale effect expired");
                     break;

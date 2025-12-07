@@ -76,6 +76,7 @@ namespace StarterAssets
 			cursorLocked = newState;
 			cursorInputForLook = newState;
 			SetCursorState(cursorLocked);
+			LookInput(Vector2.zero);
 		}
 
 		private void SetCursorState(bool newState)

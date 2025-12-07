@@ -47,8 +47,8 @@ namespace PlayerDir
         private void OnPause(InputValue value)
         {
             if (!value.isPressed) return;
-
             _pauseManager?.OnPause();
+            if(inputs) inputs.UpdateCursorState(!_pauseManager.gameObject.activeInHierarchy);
         }
     }
 }
