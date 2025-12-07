@@ -12,15 +12,40 @@ namespace Interactables
         [SerializeField] private bool repeatDialogue = true;
 
         [Header("Camera Focus")]
-        [SerializeField] private Transform cameraLookTarget;
+        [SerializeField] public Transform cameraLookTarget;
+
+        [Header("Animation")]
+        [SerializeField] private Animator npcAnimator;
 
         private int currentDialogueIndex;
+        private GameObject currentInteractor;
 
         private void Awake()
         {
             if (!cameraLookTarget)
             {
                 cameraLookTarget = transform;
+            }
+
+            if (!npcAnimator)
+            {
+                npcAnimator = GetComponent<Animator>();
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (DialogueManager.Instance)
+            {
+                DialogueManager.Instance.OnDialogueEnd += OnDialogueEnded;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (DialogueManager.Instance)
+            {
+                DialogueManager.Instance.OnDialogueEnd -= OnDialogueEnded;
             }
         }
 
@@ -44,6 +69,21 @@ namespace Interactables
 
             if (DialogueManager.Instance)
             {
+                currentInteractor = interactor;
+
+                // Trigger NPC animation
+                if (npcAnimator)
+                {
+                    npcAnimator.SetTrigger("BeginDialogue");
+                }
+
+                // Trigger Player animation
+                Animator playerAnimator = interactor.GetComponent<Animator>();
+                if (playerAnimator)
+                {
+                    playerAnimator.SetTrigger("BeginDialogue");
+                }
+
                 DialogueManager.Instance.StartDialogue(npcName, dialogueLines);
 
                 if (repeatDialogue)
@@ -55,6 +95,24 @@ namespace Interactables
             {
                 Debug.LogError("DialogueManager not found! Make sure it exists in the scene.");
             }
+        }
+
+        private void OnDialogueEnded()
+        {
+            // Trigger NPC end animation
+            if (npcAnimator)
+            {
+                npcAnimator.SetTrigger("EndDialogue");
+            }
+
+            // Trigger Player end animation
+            if (!currentInteractor) return;
+            Animator playerAnimator = currentInteractor.GetComponent<Animator>();
+            if (playerAnimator)
+            {
+                playerAnimator.SetTrigger("EndDialogue");
+            }
+            currentInteractor = null;
         }
 
         public bool CanInteract(GameObject interactor)
