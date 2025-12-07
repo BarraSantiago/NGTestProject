@@ -12,30 +12,22 @@ namespace PlayerDir
         [SerializeField] private float detectionRadius = 3f;
         [SerializeField] private LayerMask interactableLayer = -1;
         [SerializeField] private float detectionAngle = 60f;
-        
+
         [Header("UI")]
-        [SerializeField] private InteractionPromptUI promptUI;
+        [SerializeField] private InteractionPromptUI promptUIPrefab;
         [SerializeField] private string interactionKey = "E";
 
         private IInteractable currentInteractable;
         private List<IInteractable> nearbyInteractables = new();
-        private IInteractable previousInteractable;
+        private Dictionary<IInteractable, InteractionPromptUI> activePrompts = new();
 
         public IInteractable CurrentInteractable => currentInteractable;
         public bool HasInteractable => currentInteractable != null;
 
-        private void Awake()
-        {
-            if (!promptUI)
-            {
-                promptUI = FindFirstObjectByType<InteractionPromptUI>();
-            }
-        }
-
         private void Update()
         {
             DetectInteractables();
-            UpdatePromptUI();
+            UpdatePrompts();
         }
 
         private void DetectInteractables()
@@ -46,56 +38,103 @@ namespace PlayerDir
             foreach (Collider col in colliders)
             {
                 IInteractable interactable = col.GetComponent<IInteractable>();
-                if (interactable != null && interactable.CanInteract(gameObject))
-                {
-                    Vector3 directionToInteractable = (interactable.GetTransform().position - transform.position).normalized;
-                    float angle = Vector3.Angle(transform.forward, directionToInteractable);
+                if (interactable == null || !interactable.CanInteract(gameObject)) continue;
+                Vector3 directionToInteractable = (interactable.GetTransform().position - transform.position).normalized;
+                float angle = Vector3.Angle(transform.forward, directionToInteractable);
 
-                    if (angle <= detectionAngle)
-                    {
-                        nearbyInteractables.Add(interactable);
-                    }
+                if (angle <= detectionAngle)
+                {
+                    nearbyInteractables.Add(interactable);
                 }
             }
 
-            previousInteractable = currentInteractable;
             currentInteractable = nearbyInteractables
                 .OrderBy(i => Vector3.Distance(transform.position, i.GetTransform().position))
                 .FirstOrDefault();
         }
 
-        private void UpdatePromptUI()
+        private void UpdatePrompts()
         {
-            if (!promptUI) return;
-
-            if (currentInteractable != null)
+            // Get interactables that are no longer in range
+            List<IInteractable> toRemove = new();
+            foreach (KeyValuePair<IInteractable, InteractionPromptUI> kvp in activePrompts)
             {
-                bool isNewInteractable = currentInteractable != previousInteractable;
-                string prompt = currentInteractable.GetInteractionPrompt();
-                
-                if (isNewInteractable)
+                if (!nearbyInteractables.Contains(kvp.Key))
                 {
-                    promptUI.Show(prompt, currentInteractable.GetTransform(), interactionKey);
+                    kvp.Value.Hide();
+                    toRemove.Add(kvp.Key);
+                }
+            }
+
+            // Clean up prompts after a delay
+            foreach (IInteractable interactable in toRemove.ToList())
+            {
+                InteractionPromptUI prompt = activePrompts[interactable];
+                if (prompt && prompt.gameObject.activeSelf == false)
+                {
+                    Destroy(prompt.gameObject);
+                    activePrompts.Remove(interactable);
+                }
+            }
+
+            // Show or update prompts for nearby interactables
+            foreach (IInteractable interactable in nearbyInteractables)
+            {
+                if (!activePrompts.TryGetValue(interactable, out InteractionPromptUI prompt))
+                {
+                    CreatePromptFor(interactable);
                 }
                 else
                 {
-                    promptUI.UpdatePrompt(prompt);
+                    if (prompt.HasBeenInteracted) continue;
+                    
+                    bool isClosest = interactable == currentInteractable;
+                    prompt.Show(interactable.GetInteractionPrompt(), interactable.GetTransform(), 
+                        interactionKey, isClosest);
                 }
             }
-            else
-            {
-                promptUI.Hide();
-            }
+        }
+
+        private void CreatePromptFor(IInteractable interactable)
+        {
+            if (!promptUIPrefab) return;
+
+            InteractionPromptUI prompt = Instantiate(promptUIPrefab);
+            bool isClosest = interactable == currentInteractable;
+            prompt.Show(interactable.GetInteractionPrompt(), interactable.GetTransform(), 
+                interactionKey, isClosest);
+            
+            activePrompts[interactable] = prompt;
         }
 
         public void Interact()
         {
-            currentInteractable?.Interact(gameObject);
+            if (currentInteractable == null) return;
+            currentInteractable.Interact(gameObject);
+                
+            if (activePrompts.TryGetValue(currentInteractable, out InteractionPromptUI prompt))
+            {
+                prompt.OnInteracted();
+                Destroy(prompt.gameObject, 0.5f);
+                activePrompts.Remove(currentInteractable);
+            }
         }
 
         private void OnDisable()
         {
-            if (promptUI) promptUI.Hide();
+            foreach (InteractionPromptUI prompt in activePrompts.Values)
+            {
+                if (prompt) prompt.Hide();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            foreach (InteractionPromptUI prompt in activePrompts.Values)
+            {
+                if (prompt) Destroy(prompt.gameObject);
+            }
+            activePrompts.Clear();
         }
 
         private void OnDrawGizmosSelected()

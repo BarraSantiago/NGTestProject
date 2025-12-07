@@ -25,7 +25,7 @@ namespace PlayerDir
             }
         }
 
-        private void OnOpenInventory(InputValue value)
+        private void OnInventory(InputValue value)
         {
             if (!value.isPressed) return;
             bool isInventoryOpen = inventoryUI.ToggleInventory();
