@@ -182,7 +182,7 @@ public class SceneAnnotationEditor : Editor
         List<SceneAnnotation> annotationList = GetSceneAnnotations();
         if (annotationList.Count < 1) return;
         
-        Selection.objects = new UnityEngine.Object[] {annotationList[0].gameObject};
+        Selection.objects = new Object[] {annotationList[0].gameObject};
         AlignCamera(annotationList[0].gameObject.transform);
     }
 }
