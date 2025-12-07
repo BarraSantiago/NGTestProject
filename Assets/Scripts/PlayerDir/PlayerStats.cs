@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using InventoryDir.Items;
@@ -22,6 +23,7 @@ namespace PlayerDir
         public float currentGravity;
         public Vector3 baseScale;
 
+        public Action OnStatsChanged;
         private List<ActiveEffect> activeEffects = new();
 
         private void Awake()
@@ -49,6 +51,7 @@ namespace PlayerDir
                         StartTimedEffect(effect);
                         Debug.Log($"Max health boosted by {effect.value} for {effect.duration}s");
                     }
+
                     break;
 
                 case EffectType.SpeedBoost:
@@ -58,6 +61,7 @@ namespace PlayerDir
                         StartTimedEffect(effect);
                         Debug.Log($"Speed boosted by {effect.value} for {effect.duration}s. Current: {currentSpeed}");
                     }
+
                     break;
 
                 case EffectType.JumpBoost:
@@ -65,8 +69,10 @@ namespace PlayerDir
                     {
                         currentJumpForce += effect.value;
                         StartTimedEffect(effect);
-                        Debug.Log($"Jump boosted by {effect.value} for {effect.duration}s. Current: {currentJumpForce}");
+                        Debug.Log(
+                            $"Jump boosted by {effect.value} for {effect.duration}s. Current: {currentJumpForce}");
                     }
+
                     break;
 
                 case EffectType.StaminaRestore:
@@ -82,6 +88,7 @@ namespace PlayerDir
                         StartTimedEffect(effect);
                         Debug.Log($"Max stamina boosted by {effect.value} for {effect.duration}s");
                     }
+
                     break;
 
                 case EffectType.ScaleIncrease:
@@ -91,6 +98,7 @@ namespace PlayerDir
                         StartTimedEffect(effect);
                         Debug.Log($"Scale increased by {effect.value * 100}% for {effect.duration}s");
                     }
+
                     break;
 
                 case EffectType.ScaleDecrease:
@@ -100,6 +108,7 @@ namespace PlayerDir
                         StartTimedEffect(effect);
                         Debug.Log($"Scale decreased by {effect.value * 100}% for {effect.duration}s");
                     }
+
                     break;
 
                 case EffectType.GravityReduction:
@@ -107,10 +116,16 @@ namespace PlayerDir
                     {
                         currentGravity -= effect.value;
                         StartTimedEffect(effect);
-                        Debug.Log($"Gravity reduced by {effect.value} for {effect.duration}s. Current: {currentGravity}");
+                        Debug.Log(
+                            $"Gravity reduced by {effect.value} for {effect.duration}s. Current: {currentGravity}");
                     }
+
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
+            
+            OnStatsChanged?.Invoke();
         }
 
         private void StartTimedEffect(ItemEffect effect)
@@ -169,6 +184,8 @@ namespace PlayerDir
                     Debug.Log($"Gravity effect expired. Current gravity: {currentGravity}");
                     break;
             }
+            
+            OnStatsChanged?.Invoke();
         }
 
         private class ActiveEffect

@@ -16,6 +16,10 @@ MonoBehaviour:
   displayName: Test item #4
   description: Test item #4 description
   icon: {fileID: 10917, guid: 0000000000000000f000000000000000, type: 0}
-  isConsumable: 0
+  isConsumable: 1
   isEquippable: 0
   maxStack: 99
+  effects:
+  - type: 8
+    value: -10
+    duration: 5
