@@ -94,11 +94,18 @@ namespace PlayerDir
                 case EffectType.ScaleIncrease:
                     if (effect.duration > 0)
                     {
-                        transform.localScale = baseScale * (1 + effect.value);
+                        float scaleMultiplier = 1 + effect.value;
+                        Vector3 newScale = baseScale * scaleMultiplier;
+                        
+                        float heightDifference = (newScale.y - transform.localScale.y) / 2f;
+                        
+                        transform.localScale = newScale;
+                        
+                        transform.position += Vector3.up * heightDifference * 1.2f;
+                        
                         StartTimedEffect(effect);
                         Debug.Log($"Scale increased by {effect.value * 100}% for {effect.duration}s");
                     }
-
                     break;
 
                 case EffectType.ScaleDecrease:
@@ -175,7 +182,19 @@ namespace PlayerDir
 
                 case EffectType.ScaleIncrease:
                 case EffectType.ScaleDecrease:
+                    float heightDiff = (transform.localScale.y - baseScale.y) / 2f;
+                    
                     transform.localScale = baseScale;
+                    
+                    if (effect.type == EffectType.ScaleIncrease)
+                    {
+                        transform.position -= Vector3.up * heightDiff;
+                    }
+                    else if (effect.type == EffectType.ScaleDecrease)
+                    {
+                        transform.position += Vector3.up * Mathf.Abs(heightDiff);
+                    }
+                    
                     Debug.Log("Scale effect expired");
                     break;
 

@@ -180,9 +180,21 @@ namespace StarterAssets
             // set sphere position, with offset
             Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset,
                 transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
-                QueryTriggerInteraction.Ignore);
-
+            
+            // Get all colliders in the sphere
+            Collider[] colliders = Physics.OverlapSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
+            
+            // Check if any collider is NOT the player's own collider
+            Grounded = false;
+            foreach (Collider col in colliders)
+            {
+                if (col.transform != transform && !col.transform.IsChildOf(transform))
+                {
+                    Grounded = true;
+                    break;
+                }
+            }
+        
             // update animator if using character
             if (_hasAnimator)
             {
@@ -285,21 +297,27 @@ namespace StarterAssets
             {
                 // reset the fall timeout timer
                 _fallTimeoutDelta = FallTimeout;
-
+        
                 // update animator if using character
                 if (_hasAnimator)
                 {
                     _animator.SetBool(_animIDJump, false);
                     _animator.SetBool(_animIDFreeFall, false);
                 }
-
+        
                 // stop our velocity dropping infinitely when grounded
                 if (_verticalVelocity < 0.0f)
                 {
                     _verticalVelocity = -2f;
                 }
-
-                // Jump
+        
+                // jump timeout - only decrement when grounded
+                if (_jumpTimeoutDelta >= 0.0f)
+                {
+                    _jumpTimeoutDelta -= Time.deltaTime;
+                }
+        
+                // Jump - only allow when grounded and timeout has passed
                 if (_input.jump && _jumpTimeoutDelta <= 0.0f)
                 {
                     // the square root of H * -2 * G = how much velocity needed to reach desired height
@@ -310,22 +328,26 @@ namespace StarterAssets
                     {
                         _animator.SetBool(_animIDJump, true);
                     }
+                
+                    // Reset jump timeout
+                    _jumpTimeoutDelta = JumpTimeout;
                     
-                    // Reset jump input immediately after jumping
-                    _input.jump = false;
+                    // Immediately set grounded to false after jumping
+                    Grounded = false;
+                    if (_hasAnimator)
+                    {
+                        _animator.SetBool(_animIDGrounded, false);
+                    }
                 }
-
-                // jump timeout
-                if (_jumpTimeoutDelta >= 0.0f)
-                {
-                    _jumpTimeoutDelta -= Time.deltaTime;
-                }
+        
+                // Always reset jump input when grounded to prevent spam
+                _input.jump = false;
             }
             else
             {
-                // reset the jump timeout timer
+                // reset the jump timeout timer when not grounded
                 _jumpTimeoutDelta = JumpTimeout;
-
+        
                 // fall timeout
                 if (_fallTimeoutDelta >= 0.0f)
                 {
@@ -339,11 +361,11 @@ namespace StarterAssets
                         _animator.SetBool(_animIDFreeFall, true);
                     }
                 }
-
+        
                 // if we are not grounded, do not jump
                 _input.jump = false;
             }
-
+        
             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
             if (_verticalVelocity < _terminalVelocity)
             {
