@@ -1,4 +1,5 @@
 using UnityEngine;
+using Dialogue;
 
 namespace Interactables
 {
@@ -8,8 +9,20 @@ namespace Interactables
         [SerializeField] private string npcName = "NPC";
         [SerializeField, TextArea(3, 10)] private string[] dialogueLines;
         [SerializeField] private float interactionRange = 3f;
+        [SerializeField] private bool repeatDialogue = true;
+
+        [Header("Camera Focus")]
+        [SerializeField] private Transform cameraLookTarget;
 
         private int currentDialogueIndex;
+
+        private void Awake()
+        {
+            if (!cameraLookTarget)
+            {
+                cameraLookTarget = transform;
+            }
+        }
 
         public string GetInteractionPrompt()
         {
@@ -20,34 +33,57 @@ namespace Interactables
         {
             if (dialogueLines == null || dialogueLines.Length == 0)
             {
-                Debug.Log($"{npcName}: I have nothing to say.");
+                Debug.LogWarning($"{npcName}: No dialogue lines assigned!");
                 return;
             }
 
-            string dialogue = dialogueLines[currentDialogueIndex];
-            Debug.Log($"{npcName}: {dialogue}");
+            if (DialogueManager.Instance && DialogueManager.Instance.IsActive)
+            {
+                return;
+            }
 
-            // TODO: Show dialogue UI here when implemented
-            // DialogueManager.Instance.ShowDialogue(npcName, dialogue);
+            if (DialogueManager.Instance)
+            {
+                DialogueManager.Instance.StartDialogue(npcName, dialogueLines);
 
-            currentDialogueIndex = (currentDialogueIndex + 1) % dialogueLines.Length;
+                if (repeatDialogue)
+                {
+                    currentDialogueIndex = (currentDialogueIndex + 1) % dialogueLines.Length;
+                }
+            }
+            else
+            {
+                Debug.LogError("DialogueManager not found! Make sure it exists in the scene.");
+            }
         }
 
         public bool CanInteract(GameObject interactor)
         {
+            if (DialogueManager.Instance && DialogueManager.Instance.IsActive)
+            {
+                return false;
+            }
+
             float distance = Vector3.Distance(transform.position, interactor.transform.position);
             return distance <= interactionRange;
         }
 
         public Transform GetTransform()
         {
-            return transform;
+            return cameraLookTarget ? cameraLookTarget : transform;
         }
 
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, interactionRange);
+
+            if (cameraLookTarget && cameraLookTarget != transform)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(cameraLookTarget.position, 0.2f);
+                Gizmos.DrawLine(transform.position, cameraLookTarget.position);
+            }
         }
     }
 }

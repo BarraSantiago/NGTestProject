@@ -6,14 +6,14 @@ namespace View
 {
     public class InteractionPromptUI : MonoBehaviour
     {
-        [Header("UI Components")]
+        [Header("UI Components")] 
         [SerializeField] private Canvas canvas;
         [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField] private TMP_Text promptText;
         [SerializeField] private TMP_Text keyText;
         [SerializeField] private Image backgroundImage;
 
-        [Header("Animation Settings")]
+        [Header("Animation Settings")] 
         [SerializeField] private float fadeSpeed = 10f;
         [SerializeField] private Vector3 offset = new(0, 0.5f, 0);
 
@@ -69,12 +69,34 @@ namespace View
 
             // Follow target position and face camera
             if (!targetTransform || !_camera) return;
-            
-            transform.position = targetTransform.position + offset;
-            
+
+            // Get highest point of target object
+            Vector3 basePosition = GetHighestPointOfTarget(targetTransform);
+            transform.position = basePosition + offset;
+
             // Face camera directly (billboard effect)
             Vector3 directionToCamera = _camera.transform.position - transform.position;
             transform.rotation = Quaternion.LookRotation(-directionToCamera);
+        }
+
+        
+
+        private Vector3 GetHighestPointOfTarget(Transform target)
+        {
+            Renderer renderer = target.GetComponent<Renderer>();
+            if (renderer)
+            {
+                return new Vector3(target.position.x, renderer.bounds.max.y, target.position.z);
+            }
+
+            Collider collider = target.GetComponent<Collider>();
+            if (collider)
+            {
+                return new Vector3(target.position.x, collider.bounds.max.y, target.position.z);
+            }
+
+            // Fallback to transform position
+            return target.position;
         }
 
         public void Show(string prompt, Transform target, string key = "E", bool highlight = false)
@@ -98,10 +120,9 @@ namespace View
             }
 
             // Position immediately
-            if (targetTransform)
-            {
-                transform.position = targetTransform.position + offset;
-            }
+            if (!targetTransform) return;
+            Vector3 basePosition = GetHighestPointOfTarget(targetTransform);
+            transform.position = basePosition + offset;
         }
 
         public void Hide()
