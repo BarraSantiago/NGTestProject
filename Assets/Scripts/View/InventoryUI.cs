@@ -82,5 +82,12 @@ namespace View
             if (!tooltip) return;
             tooltip.Hide();
         }
+
+        public bool ToggleInventory()
+        {
+            bool isActive = !gameObject.activeSelf;
+            gameObject.SetActive(isActive);
+            return isActive;
+        }
     }
 }
